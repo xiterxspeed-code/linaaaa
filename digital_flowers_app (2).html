@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You - Digital Flower</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Plus+Jakarta+Sans:ital,wght@0,300;0,500;0,700;1,300&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #030308;
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .font-cursive {
+            font-family: 'Alex Brush', cursive;
+        }
+
+        /* Luxurious Dark Background Glow */
+        .ambient-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(220, 38, 38, 0.18) 0%, rgba(136, 19, 55, 0.08) 40%, rgba(3, 3, 8, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(40px);
+            animation: pulseGlow 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(0.9) opacity(0.7); }
+            100% { transform: scale(1.15) opacity(1); }
+        }
+
+        /* Floating background particles Canvas */
+        #particleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #svgContainer {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Stem Growth Animation */
+        .stem-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawStem 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes drawStem {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Thicker Leaf Bloom Animation */
+        .leaf {
+            transform-origin: center;
+            transform: scale(0);
+            opacity: 0;
+            animation: growLeaf 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes growLeaf {
+            0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* Plumper Flower Petals Blooming Animation */
+        .flower-group {
+            transform-origin: center;
+            transform: scale(0);
+            opacity: 0;
+            animation: bloom 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes bloom {
+            0% {
+                transform: scale(0) rotate(-25deg);
+                opacity: 0;
+                filter: blur(8px);
+            }
+            60% {
+                filter: blur(0px);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        /* For You Romantic Text Reveal */
+        .for-you-text {
+            opacity: 0;
+            animation: fadeInText 1.8s ease-out forwards;
+            animation-delay: 2.8s;
+            text-shadow: 0 0 15px rgba(255, 99, 132, 0.6), 0 0 30px rgba(220, 38, 38, 0.3);
+        }
+
+        @keyframes fadeInText {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 0.95; transform: translateY(0); }
+        }
+
+        /* Interactive Hint */
+        .click-hint {
+            position: absolute;
+            bottom: 25px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.35);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 3;
+            transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body onclick="restartBloomAnimation()" class="relative flex flex-col items-center justify-center cursor-pointer select-none">
+
+    <!-- Ambient Background Glow -->
+    <div class="ambient-glow"></div>
+
+    <!-- Background Particle Canvas -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Main SVG Container with Detailed, Thicker Flowers -->
+    <div id="svgContainer" class="w-full h-full max-w-[550px] max-h-[800px] flex items-center justify-center">
+        <svg id="canvas" class="w-full h-full overflow-visible" viewBox="0 0 500 750" xmlns="http://www.w3.org/2000/svg">
+            
+            <defs>
+                <!-- Rich Red Petal Radial Gradient (3D Effect) -->
+                <radialGradient id="petalMainGrad" cx="40%" cy="30%" r="70%">
+                    <stop offset="0%" stop-color="#ff4d6d" />
+                    <stop offset="45%" stop-color="#e60039" />
+                    <stop offset="85%" stop-color="#990026" />
+                    <stop offset="100%" stop-color="#4a0011" />
+                </radialGradient>
+
+                <!-- Side Flower Petal Gradient -->
+                <radialGradient id="petalSideGrad" cx="35%" cy="35%" r="65%">
+                    <stop offset="0%" stop-color="#ff5c7c" />
+                    <stop offset="50%" stop-color="#d90429" />
+                    <stop offset="90%" stop-color="#7a001e" />
+                </radialGradient>
+
+                <!-- Stem Metallic/Organic Gradient -->
+                <linearGradient id="stemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4ade80" />
+                    <stop offset="40%" stop-color="#16a34a" />
+                    <stop offset="100%" stop-color="#052e16" />
+                </linearGradient>
+
+                <!-- Thicker Leaves Gradient -->
+                <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#22c55e" />
+                    <stop offset="60%" stop-color="#15803d" />
+                    <stop offset="100%" stop-color="#022c22" />
+                </linearGradient>
+
+                <!-- Soft Drop Shadow for Depth -->
+                <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.6"/>
+                </filter>
+                
+                <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="5" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+            </defs>
+
+            <!-- Stems Group -->
+            <g class="bouquet-group" filter="url(#softShadow)">
+                <!-- Main Central Stem (Thicker) -->
+                <path class="stem-line" d="M 250 630 C 250 500, 248 300, 250 180" stroke="url(#stemGrad)" stroke-width="5" stroke-linecap="round" fill="none" style="animation-delay: 0s;" />
+                
+                <!-- Lower Left Branch -->
+                <path class="stem-line" d="M 250 490 C 210 440, 135 380, 120 300" stroke="url(#stemGrad)" stroke-width="3.8" stroke-linecap="round" fill="none" style="animation-delay: 0.4s;" />
+                
+                <!-- Lower Right Branch -->
+                <path class="stem-line" d="M 250 470 C 290 420, 365 380, 380 300" stroke="url(#stemGrad)" stroke-width="3.8" stroke-linecap="round" fill="none" style="animation-delay: 0.4s;" />
+
+                <!-- Upper Left Branch -->
+                <path class="stem-line" d="M 250 330 C 205 285, 140 235, 120 180" stroke="url(#stemGrad)" stroke-width="3" stroke-linecap="round" fill="none" style="animation-delay: 0.7s;" />
+
+                <!-- Upper Right Branch -->
+                <path class="stem-line" d="M 250 310 C 295 265, 360 235, 380 180" stroke="url(#stemGrad)" stroke-width="3" stroke-linecap="round" fill="none" style="animation-delay: 0.7s;" />
+            </g>
+
+            <!-- Leaves Group -->
+            <g id="leaves-group" fill="url(#leafGrad)" filter="url(#softShadow)">
+                <!-- Main Left Leaf (Fuller Shape) -->
+                <path class="leaf" d="M 250 530 C 170 510, 130 450, 150 420 C 190 435, 230 480, 250 530 Z" style="animation-delay: 1.1s; transform-origin: 250px 530px;" />
+                
+                <!-- Main Right Leaf -->
+                <path class="leaf" d="M 250 510 C 330 490, 370 430, 350 400 C 310 415, 270 460, 250 510 Z" style="animation-delay: 1.2s; transform-origin: 250px 510px;" />
+
+                <!-- Upper Left Leaf -->
+                <path class="leaf" d="M 250 380 C 190 360, 160 320, 175 290 C 205 305, 235 340, 250 380 Z" style="animation-delay: 1.4s; transform-origin: 250px 380px;" />
+
+                <!-- Upper Right Leaf -->
+                <path class="leaf" d="M 250 360 C 310 340, 340 300, 325 270 C 295 285, 265 320, 250 360 Z" style="animation-delay: 1.5s; transform-origin: 250px 360px;" />
+            </g>
+
+            <!-- Flowers Group (Thicker, Plumper, Realistic Curved Petals) -->
+            <g id="flowers-group" filter="url(#softShadow)">
+                
+                <!-- 1. MAIN CENTER TOP FLOWER (Large, Thick & Plump Petals) -->
+                <g class="flower-group" style="transform-origin: 250px 180px; animation-delay: 1.7s;">
+                    <!-- Outer/Back Glow -->
+                    <circle cx="250" cy="180" r="65" fill="rgba(220,38,38,0.25)" filter="url(#glow)" />
+
+                    <!-- Top Petal (Broad & Curvy) -->
+                    <path class="petal" fill="url(#petalMainGrad)" d="M 250 180 C 200 120, 190 50, 250 35 C 310 50, 300 120, 250 180 Z" />
+                    <!-- Bottom Petal -->
+                    <path class="petal" fill="url(#petalMainGrad)" d="M 250 180 C 200 240, 190 310, 250 325 C 310 310, 300 240, 250 180 Z" />
+                    <!-- Left Petal -->
+                    <path class="petal" fill="url(#petalMainGrad)" d="M 250 180 C 190 130, 120 120, 105 180 C 120 240, 190 230, 250 180 Z" />
+                    <!-- Right Petal -->
+                    <path class="petal" fill="url(#petalMainGrad)" d="M 250 180 C 310 130, 380 120, 395 180 C 380 240, 310 230, 250 180 Z" />
+                    
+                    <!-- Inner Diagonal Layer for Extra Thickness -->
+                    <path class="petal" fill="url(#petalSideGrad)" opacity="0.9" d="M 250 180 C 210 135, 155 95, 175 75 C 200 60, 230 130, 250 180 Z" />
+                    <path class="petal" fill="url(#petalSideGrad)" opacity="0.9" d="M 250 180 C 290 135, 345 95, 325 75 C 300 60, 270 130, 250 180 Z" />
+                    <path class="petal" fill="url(#petalSideGrad)" opacity="0.9" d="M 250 180 C 210 225, 155 265, 175 285 C 200 300, 230 230, 250 180 Z" />
+                    <path class="petal" fill="url(#petalSideGrad)" opacity="0.9" d="M 250 180 C 290 225, 345 265, 325 285 C 300 300, 270 230, 250 180 Z" />
+
+                    <!-- Flower Center Bulb (Deep Crimson Velvet) -->
+                    <circle class="flower-center" cx="250" cy="180" r="18" fill="#1a0005" stroke="#80001a" stroke-width="2" />
+                    <circle class="flower-center-inner" cx="250" cy="180" r="10" fill="#33000a" />
+                    <circle class="flower-center-core" cx="250" cy="180" r="4" fill="#ff4d6d" />
+                </g>
+
+                <!-- 2. LEFT FLOWER (Thick & Plump Scale) -->
+                <g class="flower-group" style="transform-origin: 120px 300px; animation-delay: 2.0s;">
+                    <g transform="translate(120, 300) scale(0.72)">
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -45 -60, -40 -120, 0 -135 C 40 -120, 45 -60, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -45 60, -40 120, 0 135 C 40 120, 45 60, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -60 -45, -120 -40, -135 0 C -120 40, -60 45, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C 60 -45, 120 -40, 135 0 C 120 40, 60 45, 0 0 Z" />
+                        <circle cx="0" cy="0" r="18" fill="#1a0005" stroke="#80001a" stroke-width="2" />
+                        <circle cx="0" cy="0" r="6" fill="#ff4d6d" />
+                    </g>
+                </g>
+
+                <!-- 3. RIGHT FLOWER (Thick & Plump Scale) -->
+                <g class="flower-group" style="transform-origin: 380px 300px; animation-delay: 2.2s;">
+                    <g transform="translate(380, 300) scale(0.72)">
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -45 -60, -40 -120, 0 -135 C 40 -120, 45 -60, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -45 60, -40 120, 0 135 C 40 120, 45 60, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -60 -45, -120 -40, -135 0 C -120 40, -60 45, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C 60 -45, 120 -40, 135 0 C 120 40, 60 45, 0 0 Z" />
+                        <circle cx="0" cy="0" r="18" fill="#1a0005" stroke="#80001a" stroke-width="2" />
+                        <circle cx="0" cy="0" r="6" fill="#ff4d6d" />
+                    </g>
+                </g>
+
+                <!-- 4. UPPER LEFT SMALL FLOWER -->
+                <g class="flower-group" style="transform-origin: 120px 180px; animation-delay: 2.4s;">
+                    <g transform="translate(120, 180) scale(0.52)">
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -45 -60, -40 -120, 0 -135 C 40 -120, 45 -60, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -45 60, -40 120, 0 135 C 40 120, 45 60, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -60 -45, -120 -40, -135 0 C -120 40, -60 45, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C 60 -45, 120 -40, 135 0 C 120 40, 60 45, 0 0 Z" />
+                        <circle cx="0" cy="0" r="16" fill="#1a0005" />
+                    </g>
+                </g>
+
+                <!-- 5. UPPER RIGHT SMALL FLOWER -->
+                <g class="flower-group" style="transform-origin: 380px 180px; animation-delay: 2.5s;">
+                    <g transform="translate(380, 180) scale(0.52)">
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -45 -60, -40 -120, 0 -135 C 40 -120, 45 -60, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -45 60, -40 120, 0 135 C 40 120, 45 60, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C -60 -45, -120 -40, -135 0 C -120 40, -60 45, 0 0 Z" />
+                        <path fill="url(#petalSideGrad)" d="M 0 0 C 60 -45, 120 -40, 135 0 C 120 40, 60 45, 0 0 Z" />
+                        <circle cx="0" cy="0" r="16" fill="#1a0005" />
+                    </g>
+                </g>
+
+            </g>
+
+            <!-- "For You" Cursive Elegant Text -->
+            <text x="250" y="680" text-anchor="middle" fill="#ffffff" class="font-cursive for-you-text" font-size="42" letter-spacing="2">For You lina</text>
+
+        </svg>
+    </div>
+
+    <div class="click-hint">اضغط لإعادة التفتح</div>
+
+    <script>
+        // Background Particle Effect Initialization
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedY = -(Math.random() * 0.4 + 0.1);
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.opacity = Math.random() * 0.6 + 0.2;
+                this.fadeSpeed = Math.random() * 0.005 + 0.002;
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.opacity -= this.fadeSpeed;
+
+                if (this.opacity <= 0 || this.y < 0) {
+                    this.reset();
+                    this.y = canvas.height + 10;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 182, 193, ${this.opacity})`;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = 'rgba(255, 77, 109, 0.8)';
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = Math.min(Math.floor(window.innerWidth / 15), 65);
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+        // Restart Bloom SVG Animation on Click
+        function restartBloomAnimation() {
+            const svg = document.getElementById('canvas');
+            const newSvg = svg.cloneNode(true);
+            svg.parentNode.replaceChild(newSvg, svg);
+        }
+    </script>
+</body>
+</html>
